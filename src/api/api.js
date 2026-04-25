@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://finlorax-backend.onrender.com/api',
+  baseURL: 'https://finlorax-backend-65pp.onrender.com/api',
   timeout: 120000,
 });
 
