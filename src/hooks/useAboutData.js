@@ -17,38 +17,59 @@ const FALLBACK_ABOUT = {
 
 /**
  * useAboutData()
- * Fetches about section from the API with fallback to hardcoded data
  * 
  * Returns:
- *   aboutData - object with headline, subheadline, description, experienceYears, clientsCount, bullets
- *   loading   - true while fetching
+ *   aboutData – object with headline, subheadline, description, experienceYears, clientsCount, bullets
+ *   loading   – true while the first fetch is in-flight
+ *   source    – "backend" | "fallback"
+ *
+ * Behaviour:
+ *   1. Immediately serves fallback data.js values (no flash of empty content).
+ *   2. Fires GET /api/about in the background.
+ *   3. On success replaces with API data.
+ *   4. On any error (network down, non-2xx, empty response) keeps fallback values.
  */
 export function useAboutData() {
   const [aboutData, setAboutData] = useState(FALLBACK_ABOUT);
   const [loading, setLoading] = useState(true);
+  const [source, setSource] = useState("fallback");
 
   useEffect(() => {
-    api.get("/about")
+    let cancelled = false;
+
+    api
+      .get("/about")
       .then((res) => {
+        if (cancelled) return;
         const data = res.data?.data;
         if (data) {
-          setAboutData({
+          const normalizedAbout = {
             headline: data.headline || FALLBACK_ABOUT.headline,
             subheadline: data.subheadline || FALLBACK_ABOUT.subheadline,
             description: data.description || FALLBACK_ABOUT.description,
             experienceYears: data.experienceYears || FALLBACK_ABOUT.experienceYears,
             clientsCount: data.clientsCount || FALLBACK_ABOUT.clientsCount,
-            bullets: (data.bullets && data.bullets.length > 0) 
+            bullets: (data.bullets && data.bullets.length > 0)
               ? data.bullets.map(b => typeof b === "string" ? b : b.bullet)
               : FALLBACK_ABOUT.bullets,
-          });
+          };
+          console.log("✅ API ABOUT DATA:", normalizedAbout);
+          setAboutData(normalizedAbout);
+          setSource("backend");
         }
+        // Empty response → keep fallback silently
       })
-      .catch(() => {
-        // Fallback to hardcoded data silently
+      .catch((err) => {
+        // Network error / 4xx / 5xx → keep fallback silently
+        console.log("ℹ️ About: Using fallback data (API error):", err?.message);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, []);
 
-  return { aboutData, loading };
+  return { aboutData, loading, source };
 }
+  

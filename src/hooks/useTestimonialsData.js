@@ -1,60 +1,58 @@
 import { useState, useEffect } from "react";
+import { TESTIMONIALS } from "../constants/data";
 import api from "../api/api";
-
-const FALLBACK_TESTIMONIALS = [
-  {
-    name: "Raj Kumar",
-    role: "Business Owner",
-    quote: "Finlorax has been instrumental in optimizing our tax strategy. Their expertise saved us significant amount last year!",
-    initial: "R",
-  },
-  {
-    name: "Priya Singh",
-    role: "Freelance Professional",
-    quote: "Finally, someone who explains taxes in simple terms. Highly recommended for anyone seeking reliable tax advice.",
-    initial: "P",
-  },
-  {
-    name: "Amit Patel",
-    role: "Startup Founder",
-    quote: "Their GST compliance support has been flawless. Allows me to focus on growing my business without tax worries.",
-    initial: "A",
-  },
-];
 
 /**
  * useTestimonialsData()
- * Fetches testimonials from the API with fallback to hardcoded data
  * 
  * Returns:
- *   testimonials - array of testimonial objects
- *   loading      - true while fetching
+ *   testimonials – array of testimonial objects
+ *   loading      – true while the first fetch is in-flight
+ *   source       – "backend" | "fallback"
+ *
+ * Behaviour:
+ *   1. Immediately serves fallback data.js values (no flash of empty content).
+ *   2. Fires GET /api/testimonials in the background.
+ *   3. On success replaces with API data.
+ *   4. On any error (network down, non-2xx, empty list) keeps fallback values.
  */
 export function useTestimonialsData() {
-  const [testimonials, setTestimonials] = useState(FALLBACK_TESTIMONIALS);
+  const [testimonials, setTestimonials] = useState(TESTIMONIALS);
   const [loading, setLoading] = useState(true);
+  const [source, setSource] = useState("fallback");
 
   useEffect(() => {
-    api.get("/testimonials")
+    let cancelled = false;
+
+    api
+      .get("/testimonials")
       .then((res) => {
+        if (cancelled) return;
         const data = res.data?.data;
         if (Array.isArray(data) && data.length > 0) {
           // Convert API format to component format
-          setTestimonials(
-            data.map(t => ({
-              name: t.name,
-              role: t.role,
-              quote: t.quote,
-              initial: t.initial || t.name[0],
-            }))
-          );
+          const normalizedTestimonials = data.map(t => ({
+            name: t.name,
+            role: t.role,
+            quote: t.quote,
+            initial: t.initial || t.name[0],
+          }));
+          console.log("✅ API TESTIMONIALS DATA:", normalizedTestimonials);
+          setTestimonials(normalizedTestimonials);
+          setSource("backend");
         }
+        // Empty array → keep fallback silently
       })
-      .catch(() => {
-        // Fallback to hardcoded data silently
+      .catch((err) => {
+        // Network error / 4xx / 5xx → keep fallback silently
+        console.log("ℹ️ Testimonials: Using fallback data (API error):", err?.message);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, []);
 
-  return { testimonials, loading };
+  return { testimonials, loading, source };
 }

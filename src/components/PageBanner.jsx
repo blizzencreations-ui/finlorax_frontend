@@ -7,6 +7,19 @@
  * Shows:  Home  >>  [Page Name]
  */
 
+import { useState, useEffect } from "react";
+
+/* ── viewport hook ───────────────────────────────────────────────────────── */
+function useIsMobile(bp = 768) {
+  const [mobile, setMobile] = useState(window.innerWidth < bp);
+  useEffect(() => {
+    const h = () => setMobile(window.innerWidth < bp);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, [bp]);
+  return mobile;
+}
+
 const PAGE_META = {
   about: {
     title:    "About Us",
@@ -34,12 +47,13 @@ const LABEL = { about: "About", services: "Services", testimonials: "Testimonial
 
 export default function PageBanner({ page, onHome }) {
   const meta = PAGE_META[page] || PAGE_META.about;
+  const isMobile = useIsMobile();
 
   return (
     <div
       style={{
         width: "100%",
-        height: "500px",
+        height: isMobile ? "350px" : "500px",
         // marginTop: "78px",          /* clear fixed navbar */
         position: "relative",
         overflow: "hidden",
@@ -78,8 +92,7 @@ export default function PageBanner({ page, onHome }) {
         position: "absolute", inset: 0,
         backgroundImage:
           "radial-gradient(circle, rgba(201,168,76,0.18) 1px, transparent 1px)",
-        backgroundSize: "28px 28px",
-        opacity: 0.55,
+        backgroundSize: isMobile ? "20px 20px" : "28px 28px",
       }} />
 
       {/* ── Diagonal stripe overlay ── */}
@@ -101,14 +114,15 @@ export default function PageBanner({ page, onHome }) {
         backgroundImage:
           "linear-gradient(rgba(201,168,76,0.06) 1px, transparent 1px)," +
           "linear-gradient(90deg, rgba(201,168,76,0.06) 1px, transparent 1px)",
-        backgroundSize: "70px 70px",
+        backgroundSize: isMobile ? "50px 50px" : "70px 70px",
          zIndex: 2,
       }} />
 
       {/* ── Glow: top-right ── */}
       <div style={{
         position: "absolute",
-        width: "700px", height: "700px",
+        width: isMobile ? "400px" : "700px",
+        height: isMobile ? "400px" : "700px",
         background: "radial-gradient(circle, rgba(201,168,76,0.13) 0%, transparent 65%)",
         top: "-180px", right: "-120px",
         pointerEvents: "none",
@@ -118,7 +132,8 @@ export default function PageBanner({ page, onHome }) {
       {/* ── Glow: bottom-left ── */}
       <div style={{
         position: "absolute",
-        width: "450px", height: "450px",
+        width: isMobile ? "300px" : "450px",
+        height: isMobile ? "300px" : "450px",
         background: "radial-gradient(circle, rgba(26,64,128,0.4) 0%, transparent 65%)",
         bottom: "-120px", left: "-80px",
         pointerEvents: "none", zIndex: 2,
@@ -127,24 +142,28 @@ export default function PageBanner({ page, onHome }) {
       {/* ── Rotating outer ring ── */}
       <div style={{
         position: "absolute",
-        width: "380px", height: "380px",
+        width: isMobile ? "240px" : "380px",
+        height: isMobile ? "240px" : "380px",
         border: "1px dashed rgba(201,168,76,0.2)",
         borderRadius: "50%",
-        top: "50%", right: "7%",
+        top: "50%", right: isMobile ? "5%" : "7%",
         transform: "translateY(-50%)",
         animation: "rotateBg 24s linear infinite",
          zIndex: 2,
+        display: isMobile ? "none" : "block",
       }} />
       {/* ── Rotating inner ring ── */}
       <div style={{
         position: "absolute",
-        width: "240px", height: "240px",
+        width: isMobile ? "160px" : "240px",
+        height: isMobile ? "160px" : "240px",
         border: "1px dashed rgba(201,168,76,0.12)",
         borderRadius: "50%",
-        top: "50%", right: "calc(7% + 70px)",
+        top: "50%", right: isMobile ? "calc(5% + 50px)" : "calc(7% + 70px)",
         transform: "translateY(-50%)",
         animation: "rotateBg 17s linear infinite reverse",
-        zIndex: 2
+        zIndex: 2,
+        display: isMobile ? "none" : "block",
       }} />
 
       {/* ── Floating particles ── */}
@@ -163,18 +182,20 @@ export default function PageBanner({ page, onHome }) {
       ))}
 
       {/* ── Centre content ── */}
-      <div style={{ position: "relative", zIndex: 3, textAlign: "center", padding: "0 5%" }}>
+      <div style={{ position: "relative", zIndex: 3, textAlign: "center", padding: isMobile ? "0 4%" : "0 5%" }}>
 
         {/* Breadcrumb pill */}
         <div style={{
-          display: "inline-flex", alignItems: "center", gap: "10px",
+          display: "inline-flex", alignItems: "center", gap: isMobile ? "6px" : "10px",
           background: "rgba(201,168,76,0.1)",
           border: "1px solid rgba(201,168,76,0.35)",
           color: "rgba(255,255,255,0.8)",
-          padding: "7px 22px", borderRadius: "100px",
-          fontSize: "0.78rem", fontWeight: 600,
+          padding: isMobile ? "5px 14px" : "7px 22px",
+          borderRadius: "100px",
+          fontSize: isMobile ? "0.65rem" : "0.78rem",
+          fontWeight: 600,
           letterSpacing: "0.06em",
-          marginBottom: "32px",
+          marginBottom: isMobile ? "16px" : "32px",
           animation: "borderGlow 3s ease-in-out infinite",
         }}>
           {/* Home crumb – clickable */}
@@ -191,7 +212,7 @@ export default function PageBanner({ page, onHome }) {
           </span>
 
           {/* Chevron */}
-          <span style={{ color: "rgba(201,168,76,0.5)", fontSize: "0.7rem" }}>❯❯</span>
+          <span style={{ color: "rgba(201,168,76,0.5)", fontSize: "0.6rem" }}>❯❯</span>
 
           {/* Current page */}
           <span style={{ color: "#fff" }}>{LABEL[page] || page}</span>
@@ -200,9 +221,9 @@ export default function PageBanner({ page, onHome }) {
         {/* Page title */}
         <h1 style={{
           fontFamily: "'Cormorant Garamond', serif",
-          fontSize: "clamp(3rem, 7vw, 5.5rem)",
+          fontSize: isMobile ? "clamp(2rem, 6vw, 3.2rem)" : "clamp(3rem, 7vw, 5.5rem)",
           fontWeight: 900, lineHeight: 1.05,
-          color: "#fff", marginBottom: "20px",
+          color: "#fff", marginBottom: isMobile ? "12px" : "20px",
         }}>
           {meta.title.split(" ").map((word, i, arr) =>
             i === arr.length - 1
@@ -214,17 +235,20 @@ export default function PageBanner({ page, onHome }) {
         {/* Subtitle */}
         <p style={{
           color: "rgba(255,255,255,0.58)",
-          fontSize: "1.05rem", lineHeight: "1.75",
-          maxWidth: "560px", margin: "0 auto",
+          fontSize: isMobile ? "0.85rem" : "1.05rem",
+          lineHeight: "1.75",
+          maxWidth: isMobile ? "90%" : "560px",
+          margin: "0 auto",
         }}>
           {meta.subtitle}
         </p>
 
         {/* Gold decorative rule */}
         <div style={{
-          width: "70px", height: "3px",
+          width: isMobile ? "50px" : "70px",
+          height: "3px",
           background: "linear-gradient(90deg, transparent, #c9a84c, transparent)",
-          margin: "30px auto 0",
+          margin: isMobile ? "16px auto 0" : "30px auto 0",
           borderRadius: "2px",
         }} />
       </div>
@@ -232,7 +256,7 @@ export default function PageBanner({ page, onHome }) {
       {/* ── Bottom shadow fade ── */}
       <div style={{
         position: "absolute", bottom: 0, left: 0, right: 0,
-        height: "100px",
+        height: isMobile ? "60px" : "100px",
         background: "linear-gradient(to bottom, transparent, rgba(4,13,31,0.5))",
       }} />
     </div>

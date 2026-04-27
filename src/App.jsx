@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import AdminLogin  from "./components/AdminLogin";
-import AdminLayout from "./components/AdminLayout";
+import AdminLogin   from "./components/AdminLogin";
+import AdminLayout  from "./components/AdminLayout";
 
 import Navbar             from "./components/Navbar";
 import Hero               from "./components/Hero";
@@ -17,32 +17,63 @@ import PageBanner         from "./components/PageBanner";
 import Contact            from "./components/Contact";
 import ServiceDetail      from "./components/ServiceDetail";
 
-// ── Single data fetch for the whole app ────────────────────────────────────
 import { useServicesData } from "./hooks/useServicesData";
 
-/* ─── Protected Route for Admin ─────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE CONTEXT
+   Single resize listener for the whole tree — no duplicated hooks.
+   Usage anywhere: const isMobile = useMobile();
+══════════════════════════════════════════════════════════════════════════ */
+export const MobileContext = createContext(false);
+
+export function useMobile() {
+  return useContext(MobileContext);
+}
+
+function MobileProvider({ children, breakpoint = 768 }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, [breakpoint]);
+
+  return (
+    <MobileContext.Provider value={isMobile}>
+      {children}
+    </MobileContext.Provider>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PROTECTED ROUTE
+══════════════════════════════════════════════════════════════════════════ */
 function ProtectedAdminRoute() {
+  const isMobile = useMobile();
   const [isAuth, setIsAuth] = useState(null);
 
   useEffect(() => {
     setIsAuth(!!localStorage.getItem("finlorax_token"));
   }, []);
 
-  if (isAuth === null) return <div>Loading...</div>;
+  if (isAuth === null) return (
+    <div style={{
+      display: "flex", alignItems: "center", justifyContent: "center",
+      minHeight: "100vh", background: "#f7f4ee",
+      fontSize: isMobile ? "0.9rem" : "1rem", color: "#0b1e3d",
+    }}>
+      Authenticating…
+    </div>
+  );
+
   if (!isAuth) return <Navigate to="/admin/login" replace />;
   return <AdminLayout />;
 }
 
-/* ─── map nav key → section component ───────────────────────────────────── */
-const PAGE_COMPONENT = {
-  about:        <About />,
-  testimonials: <Testimonials />,
-  contact:      <Contact />,
-};
-
-/* ─── Global reveal helper ───────────────────────────────────────────────────
-   Re-runs IntersectionObserver on ALL .reveal elements in the page.
-──────────────────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   REVEAL HELPERS
+══════════════════════════════════════════════════════════════════════════ */
 function runReveal() {
   requestAnimationFrame(() => {
     setTimeout(() => {
@@ -61,62 +92,62 @@ function runReveal() {
         { threshold: 0.08 }
       );
 
-      els.forEach((el) => {
-        el.classList.remove("visible");
-        obs.observe(el);
-      });
+      els.forEach((el) => { el.classList.remove("visible"); obs.observe(el); });
     }, 80);
   });
 }
 
-/* ─── scroll-reveal hook ─────────────────────────────────────────────────── */
 function useReveal(dep) {
   useEffect(() => { runReveal(); }, [dep]);
 }
 
-/* ─── Inner page layout ──────────────────────────────────────────────────── */
-function InnerPage({
-  page, onHome,
-  serviceIndex, onServiceSelect, onServiceBack,
-  services, serviceItemDetails,       // ← passed from App
-}) {
+/* ══════════════════════════════════════════════════════════════════════════
+   PAGE COMPONENT MAP
+══════════════════════════════════════════════════════════════════════════ */
+const PAGE_COMPONENT = {
+  about:        <About />,
+  testimonials: <Testimonials />,
+  contact:      <Contact />,
+};
+
+/* ══════════════════════════════════════════════════════════════════════════
+   INNER PAGE
+══════════════════════════════════════════════════════════════════════════ */
+function InnerPage({ page, onHome, serviceIndex, onServiceSelect, onServiceBack, services, serviceItemDetails }) {
   if (page === "services") {
     return (
       <div className="page-enter">
         <PageBanner page="services" onHome={onHome} />
-
         {serviceIndex !== null ? (
-          /* Detail view — pass the resolved service object, not just the index */
           <ServiceDetail
             service={services[serviceIndex]}
             serviceItemDetails={serviceItemDetails}
             onBack={onServiceBack}
           />
         ) : (
-          /* Grid — Services manages its own selectedIndex internally */
           <Services
             onReadMore={onServiceSelect}
             services={services}
             serviceItemDetails={serviceItemDetails}
           />
         )}
-
         <Footer />
       </div>
     );
   }
 
-  const SectionComponent = PAGE_COMPONENT[page];
   return (
     <div className="page-enter">
       <PageBanner page={page} onHome={onHome} />
-      {SectionComponent}
+      {PAGE_COMPONENT[page]}
       <Footer />
     </div>
   );
 }
 
-/* ─── Home page ──────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   HOME PAGE
+══════════════════════════════════════════════════════════════════════════ */
 function HomePage({ services, serviceItemDetails }) {
   return (
     <div className="page-enter">
@@ -125,7 +156,6 @@ function HomePage({ services, serviceItemDetails }) {
       <WhyChooseUs />
       <Testimonials />
       <CtaBanner />
-      {/* Pass pre-fetched data so Services.jsx skips a second API call */}
       <Services services={services} serviceItemDetails={serviceItemDetails} />
       <CustomerExperience />
       <QuoteForm />
@@ -134,22 +164,84 @@ function HomePage({ services, serviceItemDetails }) {
   );
 }
 
-/* ─── Root ───────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   GLOBAL MOBILE CSS
+   Injected once so you don't need a separate stylesheet edit.
+══════════════════════════════════════════════════════════════════════════ */
+function GlobalMobileStyles() {
+  return (
+    <style>{`
+      *, *::before, *::after { box-sizing: border-box; }
+
+      html { -webkit-text-size-adjust: 100%; }
+
+      body {
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Prevent images from breaking layout */
+      img { max-width: 100%; height: auto; }
+
+      /* Smooth scrolling */
+      html { scroll-behavior: smooth; }
+
+      /* Tap highlight removal on mobile */
+      a, button { -webkit-tap-highlight-color: transparent; }
+
+      /* Page transition */
+      .page-enter {
+        animation: pageFadeIn 0.3s ease forwards;
+      }
+      @keyframes pageFadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    `}</style>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SHARED ROUTE CONTENT (avoids duplication between / and *)
+══════════════════════════════════════════════════════════════════════════ */
+function PublicSite({ activePage, handleNavigate, serviceIndex, handleServiceSelect, handleServiceBack, services, serviceItemDetails }) {
+  return (
+    <>
+      <Navbar activePage={activePage} onNavigate={handleNavigate} />
+      {activePage === "home" ? (
+        <HomePage
+          key="home"
+          services={services}
+          serviceItemDetails={serviceItemDetails}
+        />
+      ) : (
+        <InnerPage
+          page={activePage}
+          onHome={() => handleNavigate("home")}
+          serviceIndex={serviceIndex}
+          onServiceSelect={handleServiceSelect}
+          onServiceBack={handleServiceBack}
+          services={services}
+          serviceItemDetails={serviceItemDetails}
+        />
+      )}
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ROOT
+══════════════════════════════════════════════════════════════════════════ */
 export default function App() {
   const [activePage,   setActivePage]   = useState("home");
   const [serviceIndex, setServiceIndex] = useState(null);
 
-  // ── Fetch services once at the top level ───────────────────────────────
   const { services, serviceItemDetails } = useServicesData();
 
-  /* Re-run reveal when page changes */
   useReveal(activePage);
 
-  /* Re-run reveal when returning to the services grid */
   useEffect(() => {
-    if (serviceIndex === null && activePage === "services") {
-      runReveal();
-    }
+    if (serviceIndex === null && activePage === "services") runReveal();
   }, [serviceIndex, activePage]);
 
   const handleNavigate = (key) => {
@@ -168,65 +260,25 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  return (
-    <>
-      <Routes>
-        {/* Public website */}
-        <Route path="/" element={
-          <>
-            <Navbar activePage={activePage} onNavigate={handleNavigate} />
-            {activePage === "home" ? (
-              <HomePage
-                key="home"
-                services={services}
-                serviceItemDetails={serviceItemDetails}
-              />
-            ) : (
-              <InnerPage
-                page={activePage}
-                onHome={() => handleNavigate("home")}
-                serviceIndex={serviceIndex}
-                onServiceSelect={handleServiceSelect}
-                onServiceBack={handleServiceBack}
-                services={services}
-                serviceItemDetails={serviceItemDetails}
-              />
-            )}
-          </>
-        } />
+  const publicProps = {
+    activePage, handleNavigate,
+    serviceIndex, handleServiceSelect, handleServiceBack,
+    services, serviceItemDetails,
+  };
 
-        {/* Admin routes */}
+  return (
+    <MobileProvider>
+      <GlobalMobileStyles />
+      <Routes>
+        <Route path="/"                   element={<PublicSite {...publicProps} />} />
         <Route path="/admin/login"        element={<AdminLogin />} />
         <Route path="/admin/dashboard"    element={<ProtectedAdminRoute />} />
         <Route path="/admin/services"     element={<ProtectedAdminRoute />} />
         <Route path="/admin/testimonials" element={<ProtectedAdminRoute />} />
         <Route path="/admin/queries"      element={<ProtectedAdminRoute />} />
         <Route path="/admin/about"        element={<ProtectedAdminRoute />} />
-
-        {/* Catch all */}
-        <Route path="*" element={
-          <>
-            <Navbar activePage={activePage} onNavigate={handleNavigate} />
-            {activePage === "home" ? (
-              <HomePage
-                key="home"
-                services={services}
-                serviceItemDetails={serviceItemDetails}
-              />
-            ) : (
-              <InnerPage
-                page={activePage}
-                onHome={() => handleNavigate("home")}
-                serviceIndex={serviceIndex}
-                onServiceSelect={handleServiceSelect}
-                onServiceBack={handleServiceBack}
-                services={services}
-                serviceItemDetails={serviceItemDetails}
-              />
-            )}
-          </>
-        } />
+        <Route path="*"                   element={<PublicSite {...publicProps} />} />
       </Routes>
-    </>
+    </MobileProvider>
   );
 }

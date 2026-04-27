@@ -1,29 +1,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700&display=swap');
 
+/* ─── Reset ─── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+/* ─── Base ─── */
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;   /* prevent iOS font inflation */
+  text-size-adjust: 100%;
 }
 
 body {
   font-family: 'Outfit', sans-serif;
   overflow-x: hidden;
   background: #ffffff;
+  -webkit-overflow-scrolling: touch; /* momentum scrolling on iOS */
 }
 
 input, select, textarea, button {
   font-family: 'Outfit', sans-serif;
 }
 
-/* ─── Scrollbar ─── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #040d1f; }
-::-webkit-scrollbar-thumb { background: #c9a84c; border-radius: 3px; }
+/* ─── Images & media ─── */
+img, video, iframe, svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ─── Touch targets ─── */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;        /* removes 300ms tap delay */
+}
+
+/* ─── Scrollbar (desktop only) ─── */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar       { width: 6px; }
+  ::-webkit-scrollbar-track { background: #040d1f; }
+  ::-webkit-scrollbar-thumb { background: #c9a84c; border-radius: 3px; }
+}
 
 /* ─── Keyframes ─── */
 @keyframes float {
@@ -57,15 +77,41 @@ input, select, textarea, button {
 }
 
 @keyframes particleDrift {
-  0%   { transform: translateY(0)     translateX(0)    scale(1); opacity: 0.6; }
+  0%   { transform: translateY(0)      translateX(0)    scale(1); opacity: 0.6; }
   100% { transform: translateY(-120px) translateX(30px) scale(0); opacity: 0;   }
 }
 
-/* ─── Utility classes ─── */
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Utility: floating animations ─── */
 .floating-1 { animation: float  6s ease-in-out infinite; }
 .floating-2 { animation: float2 8s ease-in-out infinite 1s; }
 .floating-3 { animation: float  7s ease-in-out infinite 2s; }
 
+/* Reduce motion for accessibility + battery on mobile */
+@media (prefers-reduced-motion: reduce) {
+  .floating-1,
+  .floating-2,
+  .floating-3 {
+    animation: none;
+  }
+  .reveal {
+    transition: none !important;
+  }
+  .page-enter {
+    animation: none !important;
+  }
+}
+
+/* ─── Gold shimmer text ─── */
 .gold-text {
   background: linear-gradient(135deg, #c9a84c, #f0d080, #c9a84c);
   background-size: 200% auto;
@@ -75,10 +121,12 @@ input, select, textarea, button {
   animation: shimmer 3s linear infinite;
 }
 
+/* ─── Hero background ─── */
 .hero-bg {
   background: linear-gradient(135deg, #040d1f 0%, #0b1e3d 40%, #0d2550 70%, #091828 100%);
 }
 
+/* ─── Nav blur ─── */
 .nav-blur {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -95,6 +143,13 @@ input, select, textarea, button {
   transform: translateY(0);
 }
 
+/* Smaller reveal travel distance on mobile */
+@media (max-width: 767px) {
+  .reveal {
+    transform: translateY(20px);
+  }
+}
+
 /* ─── Particles ─── */
 .particle {
   position: absolute;
@@ -105,19 +160,254 @@ input, select, textarea, button {
   animation: particleDrift 3s ease-in infinite;
 }
 
+/* Fewer/smaller particles on mobile */
+@media (max-width: 767px) {
+  .particle {
+    width: 3px;
+    height: 3px;
+    opacity: 0.25;
+  }
+}
+
 /* ─── Service card glow ─── */
 .service-glow { opacity: 0; transition: opacity 0.4s; }
 .service-card:hover .service-glow { opacity: 1; }
 
-/* ─── Page transitions ─── */
-@keyframes pageFadeIn {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Disable hover glow on touch devices (no hover state) */
+@media (hover: none) {
+  .service-card:hover .service-glow { opacity: 0; }
 }
+
+/* ─── Page transitions ─── */
 .page-enter {
   animation: pageFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* Snappier transition on mobile */
+@media (max-width: 767px) {
+  .page-enter {
+    animation-duration: 0.3s;
+  }
+}
+
 .inner-page-content {
   background: #f7f4ee;
   min-height: 60vh;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE LAYOUT HELPERS
+   Generic utility classes for responsive layouts used across components.
+══════════════════════════════════════════════════════════════════════════ */
+
+/* Safe-area insets for notched phones (iPhone X+, Android cutouts) */
+.safe-top    { padding-top:    env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* ─── Mobile typography scale ─── */
+@media (max-width: 767px) {
+  h1 { font-size: clamp(1.8rem, 7vw, 2.4rem); line-height: 1.15; }
+  h2 { font-size: clamp(1.5rem, 6vw, 2rem);   line-height: 1.2;  }
+  h3 { font-size: clamp(1.2rem, 5vw, 1.6rem); }
+  h4 { font-size: clamp(1rem,   4vw, 1.2rem); }
+  p  { font-size: 0.9rem; line-height: 1.75; }
+}
+
+/* ─── Prevent table overflow ─── */
+@media (max-width: 767px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+}
+
+/* ─── Form inputs: prevent iOS zoom on focus ─── */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important; /* 16px stops iOS from zooming */
+  }
+}
+
+/* ─── Sticky bottom bar clearance ─── */
+/* Used by AdminLayout's bottom tab bar on mobile */
+@media (max-width: 767px) {
+  .has-bottom-tab {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ─── Mobile-safe fixed elements ─── */
+@media (max-width: 767px) {
+  .fixed-bottom {
+    bottom: env(safe-area-inset-bottom, 0);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ENHANCED MOBILE RESPONSIVENESS
+   Comprehensive mobile optimizations for all screen sizes
+══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Mobile navbar adjustments ─── */
+@media (max-width: 767px) {
+  nav {
+    padding: 0 3% !important;
+  }
+  
+  /* Reduce navbar height on mobile */
+  nav > div {
+    height: 60px !important;
+  }
+  
+  nav img {
+    height: 52px !important;
+  }
+}
+
+/* ─── Mobile section spacing ─── */
+@media (max-width: 767px) {
+  section {
+    padding: 50px 4% !important;
+  }
+  
+  section > div {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* ─── Mobile grid responsive ─── */
+@media (max-width: 767px) {
+  [style*="grid-template-columns: repeat(3"]  { grid-template-columns: 1fr !important; }
+  [style*="grid-template-columns: repeat(4"]  { grid-template-columns: 1fr 1fr !important; }
+  [style*="grid-template-columns: 1fr 1fr"]   { grid-template-columns: 1fr !important; }
+  [style*="grid-template-columns: 2fr 1fr"]   { grid-template-columns: 1fr !important; }
+  [style*="grid-template-columns: 1.2fr 0.8fr"] { grid-template-columns: 1fr !important; }
+}
+
+/* ─── Mobile flex adjustments ─── */
+@media (max-width: 767px) {
+  [style*="flex-direction: row"] {
+    flex-direction: column !important;
+  }
+}
+
+/* ─── Mobile gap adjustments ─── */
+@media (max-width: 767px) {
+  [style*="gap: 80px"],
+  [style*="gap: 90px"] {
+    gap: 40px !important;
+  }
+  
+  [style*="gap: 60px"],
+  [style*="gap: 64px"] {
+    gap: 30px !important;
+  }
+}
+
+/* ─── Mobile button sizing ─── */
+@media (max-width: 767px) {
+  button, a[role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ─── Mobile text alignment ─── */
+@media (max-width: 767px) {
+  .mobile-center {
+    text-align: center !important;
+  }
+}
+
+/* ─── Mobile container padding ─── */
+@media (max-width: 767px) {
+  .container, [class*="container"], 
+  [class*="wrapper"], [class*="content"] {
+    padding-left: 4% !important;
+    padding-right: 4% !important;
+  }
+}
+
+/* ─── Mobile overlay & backdrop ─── */
+@media (max-width: 767px) {
+  [style*="backdrop-filter"] {
+    -webkit-backdrop-filter: blur(8px) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+}
+
+/* ─── Mobile scrolling optimization ─── */
+@media (max-width: 767px) {
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* ─── Mobile text truncation ─── */
+@media (max-width: 767px) {
+  .truncate-mobile {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ─── Hide elements on mobile ─── */
+@media (max-width: 767px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* ─── Show only on mobile ─── */
+@media (min-width: 768px) {
+  .show-mobile-only {
+    display: none !important;
+  }
+}
+
+/* ─── Mobile card adjustments ─── */
+@media (max-width: 767px) {
+  .card, [class*="card"] {
+    border-radius: 16px !important;
+    padding: 20px !important;
+  }
+}
+
+/* ─── Mobile list spacing ─── */
+@media (max-width: 767px) {
+  li, .list-item {
+    margin-bottom: 12px;
+  }
+}
+
+/* ─── Viewport height optimization ─── */
+@media (max-height: 600px) {
+  section {
+    padding: 40px 4% !important;
+  }
+  
+  h1, h2, h3 {
+    margin-bottom: 12px !important;
+  }
+}
+
+/* ─── Landscape mode adjustments ─── */
+@media (max-height: 500px) and (orientation: landscape) {
+  section {
+    padding: 30px 4% !important;
+  }
+  
+  .hide-landscape {
+    display: none !important;
+  }
 }
