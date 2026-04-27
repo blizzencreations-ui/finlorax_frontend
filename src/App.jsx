@@ -158,7 +158,7 @@ function HomePage({ services, serviceItemDetails }) {
       <CtaBanner />
       <Services services={services} serviceItemDetails={serviceItemDetails} />
       <CustomerExperience />
-      <QuoteForm />
+      <Contact />
       <Footer />
     </div>
   );
