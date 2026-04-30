@@ -103,7 +103,15 @@ const finalSource = isUsingProps ? "props (App.jsx)" : source;
 
   /* ── grid view ─────────────────────────────────────────────────────────── */
   return (
-    <section id="services" style={{ padding: "110px 5%", background: "#0b1e3d" }}>
+    <section id="services" style={{ padding: "clamp(60px, 10vw, 110px) 5%", background: "#0b1e3d" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .services-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+        }
+      `}</style>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
 
         {/* Header */}
@@ -129,7 +137,7 @@ const finalSource = isUsingProps ? "props (App.jsx)" : source;
 
         {/* Loading skeleton — only shown on first paint if backend is slow */}
         {loading && services.length === 0 ? (
-          <div style={{
+          <div className="services-grid" style={{
             display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "22px",
           }}>
             {[0, 1, 2, 3].map((i) => (
@@ -150,7 +158,7 @@ const finalSource = isUsingProps ? "props (App.jsx)" : source;
           </div>
         ) : (
           /* 2-column card grid */
-          <div style={{
+          <div className="services-grid" style={{
             display: "grid",
             gridTemplateColumns: "repeat(2, 1fr)",
             gap: "22px",
