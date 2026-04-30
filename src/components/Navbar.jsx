@@ -120,7 +120,7 @@ export default function Navbar({ activePage, onNavigate }) {
 
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
-        padding: "0 5%",
+        padding: isMobile ? "0 3%" : "0 5%",
         background: (scrolled || menuOpen)
           ? "rgba(4,13,31,0.97)"
           : "rgba(4,13,31,0.6)",
@@ -132,7 +132,7 @@ export default function Navbar({ activePage, onNavigate }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          height: "72px",
+          height: isMobile ? "56px" : "72px",
         }}>
 
           {/* ── Logo ──────────────────────────────────────────── */}
@@ -141,7 +141,7 @@ export default function Navbar({ activePage, onNavigate }) {
               src="/finlorax_bussiness_logo.jpeg"
               alt="Finlorax Financial Services"
               style={{
-                height: "64px",
+                height: isMobile ? "42px" : "64px",
                 width: "auto",
                 borderRadius: "10px",
                 transition: "all 0.35s ease",
@@ -216,14 +216,16 @@ export default function Navbar({ activePage, onNavigate }) {
                 background: "transparent",
                 border: "1px solid rgba(201,168,76,0.25)",
                 borderRadius: "8px",
-                padding: "10px 12px",
+                padding: "8px 10px",
                 cursor: "pointer",
                 display: "flex",
                 flexDirection: "column",
-                gap: "5px",
+                gap: "4px",
                 alignItems: "center",
                 justifyContent: "center",
                 transition: "background 0.2s",
+                minWidth: "44px",
+                minHeight: "44px",
               }}
             >
               <Bar
