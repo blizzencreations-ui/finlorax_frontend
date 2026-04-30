@@ -64,7 +64,8 @@ export default function ServiceItemDetail({ itemKey, itemDetail, accentColor = "
         style={{
           display: "grid",
           gridTemplateColumns: "40% 60%",
-          height: "calc(100vh - 73px)",
+          minHeight: "calc(100vh - 73px)",
+          height: "auto",
         }}
       >
         {/* ══ LEFT — Photo panel ══════════════════════════════════════════ */}
@@ -78,7 +79,7 @@ export default function ServiceItemDetail({ itemKey, itemDetail, accentColor = "
           <div
             className="image-card"
             style={{
-              width: "400px",
+              width: "clamp(280px, 90vw, 400px)",
               borderRadius: "24px",
               overflow: "hidden",
               position: "relative",
@@ -100,13 +101,13 @@ export default function ServiceItemDetail({ itemKey, itemDetail, accentColor = "
                 alt={photoAlt}
                 onLoad={() => setImgLoaded(true)}
                 onError={() => setImgError(true)}
-                style={{ width: "100%", height: "460px", objectFit: "cover" }}
+                style={{ width: "100%", height: "clamp(250px, 60vh, 460px)", objectFit: "cover" }}
               />
             ) : (
               <div style={{
-                height: "460px",
+                height: "clamp(250px, 60vh, 460px)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                color: "#fff", fontSize: "3rem",
+                color: "#fff", fontSize: "clamp(1.5rem, 4vw, 3rem)",
               }}>
                 🏢
               </div>
@@ -140,7 +141,7 @@ export default function ServiceItemDetail({ itemKey, itemDetail, accentColor = "
           style={{
             height: "100%",
             overflowY: "auto",
-            padding: "60px",
+            padding: "clamp(24px, 5vw, 60px)",
             scrollBehavior: "smooth",
           }}
         >
@@ -315,16 +316,56 @@ export default function ServiceItemDetail({ itemKey, itemDetail, accentColor = "
         .item-detail-content > * {
           animation: fadeUp 0.6s ease forwards;
         }
-        @media (max-width: 900px) {
-          .item-detail-grid { grid-template-columns: 1fr !important; }
+        @media (max-width: 1024px) {
+          .item-detail-grid { 
+            grid-template-columns: 1fr !important;
+            height: auto !important;
+          }
           .item-detail-grid > div:first-child {
-            height: 260px !important;
+            height: 300px !important;
             display: flex; justify-content: center; align-items: center;
+            padding: 24px 20px;
           }
           .item-detail-content {
-            padding: 36px 24px 60px !important;
+            padding: 32px 20px 48px !important;
             overflow: visible !important;
           }
+        }
+        @media (max-width: 768px) {
+          .item-detail-grid {
+            minHeight: auto !important;
+            height: auto !important;
+          }
+          .item-detail-grid > div:first-child {
+            height: 280px !important;
+          }
+          .item-detail-content {
+            padding: 24px 16px 40px !important;
+          }
+          .image-card { width: clamp(240px, 85vw, 380px) !important; }
+        }
+        @media (max-width: 480px) {
+          .item-detail-grid {
+            height: auto !important;
+          }
+          .item-detail-grid > div:first-child {
+            height: 240px !important;
+            padding: 16px 12px;
+          }
+          .item-detail-content {
+            padding: 20px 12px 32px !important;
+            min-height: auto !important;
+          }
+          .image-card { width: clamp(200px, 80vw, 340px) !important; }
+        }
+        @media (max-width: 360px) {
+          .item-detail-grid > div:first-child {
+            height: 200px !important;
+          }
+          .item-detail-content {
+            padding: 16px 10px 24px !important;
+          }
+          .image-card { width: 90vw !important; }
         }
       `}</style>
     </section>
